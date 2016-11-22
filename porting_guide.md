@@ -16,7 +16,7 @@ Refer to `meta-openbmc-machines/meta-openpower/meta-ibm/meta-palmetto`:
 4. Use machine name `m1` in config files
 
 
-Below directory tree shows the structure.
+Below directory tree shows the structure under `meta-openbmc-machines/meta-openpower`.
 ```
 meta-fac
 ├── conf
@@ -84,33 +84,33 @@ See below table for the power on related GPIOs.
 
 ## Put it together
 
-The above steps invovlve changes in different repos, and the changes may not be pushed to github.
-
-To build with local repos, some bitbake config files need to be changed.
+The above steps involve changes in different repos, and the changes may not be pushed to github yet, so usually you need to build with local repos.
 
 Assume the local repos are:
-* OpenBMC at `/home/user/openbmc`
-* Linux at `/home/user/linux`
-* Skeleton at `/home/user/skeleton`
+* OpenBMC: `/home/user/openbmc`
+* Linux: `/home/user/linux`
+* Skeleton: `/home/user/skeleton`
 
-The Linux and Skeleton's `bbclass` files need to be changed.
+To build with local repos, Linux and Skeleton's `bitbake` files need to be changed.
+
 1. For Linux, in `/home/user/openbmc/meta-phosphor/common/recipes-kernel/linux/`
    * Change `linux-obmc.inc` for kernel source's URI:
-      ```
+      ```bash
       KSRC ?= "git:///home/user/linux/;protocol=file;branch=${KBRANCH}"
       ```
    * Change `linux-obmc_4.7.bb` for kernel revisioin:
-      ```
+      ```bash
       SRCREV="your-linux-kernel-git-revision"
       ```
 2. For Skeleton, change `/home/user/openbmc/meta-phosphor/classes/skeleton-rev.bbclass` for skeleton's URI and revision:
-   ```
+   ```bash
    SRCREV ?= "your-skeleton-git-revision"
    SKELETON_URI ?= "git:///home/user/skeleton/;branch=your-branch;protocol=file"
    ```
 
 Then do the OpenBMC build:
-```
+
+```bash
 TEMPLATECONF=meta-openbmc-machines/meta-openpower/meta-fac/meta-m1/conf . oe-init-build-env
 bitbake obmc-phosphor-image
 ```
@@ -129,15 +129,84 @@ Tips: Use `--to=openbmc@lists.ozlabs.org --subject-prefix="PATCH linux dev-4.7"`
 ## Miscs
 
 ### Feature list
-TODO:
+OpenBMC contains several features implemented in different repos.
+
+TODOs:
+
+#### IPMI
+
+#### Chassis cotrol
+
+#### LAN function
+
+#### Sensors reading
+
+#### FRU
+
+#### Watchdog
+
+#### Network
+
+#### Event log
+
+#### FAN control
+
+#### SSH
+
+#### SOL
+
+#### KVM
+
+#### Web-GUI
+
+#### REST
+
+#### Firmware update
+
+BMC firmware can be updated via REST API. See [code-update.md](code-update.md) for details.
+The code locates in `skeleton`'s `pyflashbmc/bmc_update.py`
 
 ### Add OEM IPMI command
 TODO
 
 ### Devtool
-TODO
+`devtool` is a development tool provided by Yocto to modify source files that are external to OpenBMC.
+See [Modifying Source Code](https://www.yoctoproject.org/docs/1.8/dev-manual/dev-manual.html#dev-modifying-source-code) for details.
+
+Here is an example to modify linux kernel source.
+
+```bash
+devtool modify linux-obmc  # Create a local linux repo under build/workspace/sources
+pushd /home/user/openbmc/build/workspace/sources/linux-obmc
+# modify some code...
+bitbake obmc-phosphor-image # Do the build with the modified code
+```
+
+When the local changes are completed and pushed to github, it can be removed:
+```bash
+devtool reset linux-obmc  # Remove the local repo from the build, but not delete local source
+rm -rf /home/user/openbmc/build/workspace/sources/linux-obmc  # Delete the local repo
+```
 
 ### Compile a single module
+During testing and modifying the local changes, it is usually not necessary to build the whole image of OpenBMC, a single module can be re-build and tested.
+
+This can be done by either using bitbake or SDK.
+
+#### Bitbake build
+Use `bitbake <recipe> -c do_build` to build the single recipe.
+
+For example, if `obmc-op-control-host` code is changed, use below command to build:
+```bash
+bitbake obmc-op-control-host -c do_build
+```
+
+The built binary is at `build/tmp/work/armv6-openbmc-linux-gnueabi/obmc-op-control-host/1.0-r1/image/usr/sbin/`
+
+If `obmc-op-control-host` is on local repo generated from `devtool`, the built binary locates `build/workspace/sources/obmc-op-control-host/op-hostctl` as well.
+
+
+#### SDK build
 TODO
 
-Maybe "Devtool" and "Compile a single module" sections can be moved to [cheatsheet.md](cheatsheet.md)?
+Note: Maybe "Devtool" and "Compile a single module" sections can be moved to [cheatsheet.md](cheatsheet.md)?
