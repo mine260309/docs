@@ -17,6 +17,7 @@ Refer to `meta-openbmc-machines/meta-openpower/meta-ibm/meta-palmetto`:
 
 
 Below directory tree shows the structure under `meta-openbmc-machines/meta-openpower`.
+
 ```
 meta-fac
 ├── conf
@@ -95,14 +96,19 @@ To build with local repos, Linux and Skeleton's `bitbake` files need to be chang
 
 1. For Linux, in `/home/user/openbmc/meta-phosphor/common/recipes-kernel/linux/`
    * Change `linux-obmc.inc` for kernel source's URI:
+
       ```bash
       KSRC ?= "git:///home/user/linux/;protocol=file;branch=${KBRANCH}"
       ```
+
    * Change `linux-obmc_4.7.bb` for kernel revisioin:
+
       ```bash
       SRCREV="your-linux-kernel-git-revision"
       ```
+
 2. For Skeleton, change `/home/user/openbmc/meta-phosphor/classes/skeleton-rev.bbclass` for skeleton's URI and revision:
+
    ```bash
    SRCREV ?= "your-skeleton-git-revision"
    SKELETON_URI ?= "git:///home/user/skeleton/;branch=your-branch;protocol=file"
@@ -183,6 +189,7 @@ bitbake obmc-phosphor-image # Do the build with the modified code
 ```
 
 When the local changes are completed and pushed to github, it can be removed:
+
 ```bash
 devtool reset linux-obmc  # Remove the local repo from the build, but not delete local source
 rm -rf /home/user/openbmc/build/workspace/sources/linux-obmc  # Delete the local repo
@@ -197,6 +204,7 @@ This can be done by either using bitbake or SDK.
 Use `bitbake <recipe> -c do_build` to build the single recipe.
 
 For example, if `obmc-op-control-host` code is changed, use below command to build:
+
 ```bash
 bitbake obmc-op-control-host -c do_build
 ```
